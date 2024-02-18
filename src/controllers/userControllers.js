@@ -5,8 +5,10 @@ const {
   CognitoIdentityProviderClient,
 } = require("@aws-sdk/client-cognito-identity-provider");
 const client = new CognitoIdentityProviderClient({});
-
-const signUp = async (username, password, email) => {
+const { addUser, addData } = require("./dynamodbControllers");
+// addData();
+// addUser("test", "yash.com");
+const signUp = async ({ username, password, email }) => {
   const command = new AdminCreateUserCommand({
     UserPoolId: process.env.COGNITO_USER_POOL_ID,
     Username: username,
@@ -36,7 +38,7 @@ const signUp = async (username, password, email) => {
   };
 };
 
-const login = async (username, password) => {
+const login = async ({ username, password }) => {
   const user_pool_id = process.env.COGNITO_USER_POOL_ID;
   const client_id = process.env.COGNITO_USER_POOL_CLIENT_ID;
   const command = new AdminInitiateAuthCommand({
