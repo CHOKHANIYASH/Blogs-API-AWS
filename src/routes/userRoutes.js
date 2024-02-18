@@ -6,12 +6,12 @@ router.get("/", (req, res) => {
 });
 router.post("/signup", async (req, res) => {
   const { username, password, email } = req.body;
-  const response = await signUp(username, password, email);
+  const response = await signUp({ username, password, email });
   res.send(response);
 });
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  const response = await login(username, password);
+  const response = await login({ username, password });
   res.send(response);
 });
 
