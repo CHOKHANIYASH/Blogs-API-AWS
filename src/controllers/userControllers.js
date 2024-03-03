@@ -2,11 +2,9 @@ const {
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
   AdminInitiateAuthCommand,
-  CognitoIdentityProviderClient,
 } = require("@aws-sdk/client-cognito-identity-provider");
-
-const client = new CognitoIdentityProviderClient({});
-
+const { ScanCommand } = require("@aws-sdk/client-dynamodb");
+const { cognitoClient, dynamodbClient } = require("../aws/clients");
 const { addUser, addData } = require("./dynamodbControllers");
 
 const signUp = async ({ username, password, email }) => {
@@ -23,7 +21,7 @@ const signUp = async ({ username, password, email }) => {
       ],
       MessageAction: "SUPPRESS",
     });
-    const user = await client.send(command);
+    const user = await cognitoClient.send(command);
     if (!user) {
       throw new Error("User not created");
     }
@@ -33,7 +31,7 @@ const signUp = async ({ username, password, email }) => {
       Password: password,
       Permanent: true,
     });
-    const passwordResponse = await client.send(passwordCommand);
+    const passwordResponse = await cognitoClient.send(passwordCommand);
     const userId = await addUser({ username, email });
     return {
       success: true,
@@ -60,7 +58,7 @@ const login = async ({ username, password }) => {
         PASSWORD: password,
       },
     });
-    const response = await client.send(command);
+    const response = await cognitoClient.send(command);
     console.log(response);
     return {
       success: true,
@@ -74,7 +72,26 @@ const login = async ({ username, password }) => {
   }
 };
 
+const getAllUsers = async () => {
+  try {
+    const command = new ScanCommand({
+      TableName: "blog_user",
+    });
+    const response = await dynamodbClient.send(command);
+    const Items = response.Items;
+    Items.forEach((item) => {
+      item.username = item.username.S;
+      item.email = item.email.S;
+      item.userId = item.userId.S;
+    });
+    return { success: true, message: "All users list", data: Items };
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
   signUp,
   login,
+  getAllUsers,
 };
