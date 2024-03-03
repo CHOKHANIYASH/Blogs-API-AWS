@@ -4,6 +4,8 @@ const {
   login,
   getAllUsers,
 } = require("../controllers/userControllers");
+const { addBlog, getUserBlogs } = require("../controllers/blogsControllers");
+
 const { isAdmin } = require("../middlewares/middlewares");
 
 router.get("/", isAdmin, async (req, res) => {
@@ -38,6 +40,36 @@ router.post("/login", async (req, res) => {
     res.status(200).send(response); // 200 status code for success
   } catch (err) {
     console.error("Error in login:", err);
+    res
+      .status(500)
+      .send({ success: false, message: "Internal Server Error", data: {} });
+  }
+});
+
+router.get("/:id/blog", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const response = await getUserBlogs({ userId });
+    res.status(200).send(response);
+  } catch (err) {
+    console.error("Error in getUserBlog:", err);
+    res
+      .status(500)
+      .send({ success: false, message: "Internal Server Error", data: {} });
+  }
+});
+
+router.post("/:id/blog", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const response = await addBlog({
+      title: req.body.title,
+      content: req.body.content,
+      userId: id,
+    });
+    res.status(200).send(response);
+  } catch (err) {
+    console.error("Error in getUserBlogs:", err);
     res
       .status(500)
       .send({ success: false, message: "Internal Server Error", data: {} });
