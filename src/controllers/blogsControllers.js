@@ -1,6 +1,37 @@
 const { v4: uuidv4 } = require("uuid");
 const { ScanCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const { dynamodbClient } = require("../aws/clients");
+
+const getAllBlogs = async () => {
+  const command = new ScanCommand({
+    TableName: "blog",
+  });
+  const response = await dynamodbClient.send(command);
+  const items = [];
+  for (const Item of response.Items) {
+    const item = await unmarshall(Item);
+    items.push(item);
+  }
+  return { message: "All Blogs", data: { blogs: items } };
+};
+
+const getBlog = async ({ blogId }) => {
+  const command = new ScanCommand({
+    TableName: "blog",
+    FilterExpression: "blogId = :blogId",
+    ExpressionAttributeValues: {
+      ":blogId": { S: blogId },
+    },
+  });
+  const response = await dynamodbClient.send(command);
+  const items = [];
+  for (const Item of response.Items) {
+    const item = await unmarshall(Item);
+    items.push(item);
+  }
+  return { message: "Blog", data: { blogs: items } };
+};
 
 const addBlog = async ({ title, content, userId }) => {
   try {
@@ -36,30 +67,16 @@ const getUserBlogs = async ({ userId }) => {
     },
   });
   const response = await dynamodbClient.send(command);
-  const items = response.Items;
-  items.forEach((item) => {
-    item.title = item.title.S;
-    item.content = item.content.S;
-    item.blogId = item.blogId.S;
-    item.userId = item.userId.S;
-    item.createdAt = item.createdAt.S;
-  });
-  console.log(response);
+  const items = [];
+  for (const Item of response.Items) {
+    const item = await unmarshall(Item);
+    items.push(item);
+  }
   return { success: true, message: "User Blogs", data: { blogs: items } };
 };
 
-const getBlog = async (blogId) => {
-  const command = new ScanCommand({
-    TableName: "blog",
-    FilterExpression: "blogId = :blogId",
-    ExpressionAttributeValues: {
-      ":blogId": { S: blogId },
-    },
-  });
-  const response = await dynamodbClient.send(command);
-  return { message: "Blog", data: response.Items };
-};
 module.exports = {
+  getAllBlogs,
   addBlog,
   getBlog,
   getUserBlogs,
