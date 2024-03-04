@@ -1,0 +1,1 @@
+Folder to be used as a buffer storage for image, so that if there is some error in the image storage process, the image will be stored in our buffer and we can restart the process of storing the image
