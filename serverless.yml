@@ -1,0 +1,51 @@
+# serverless.yml
+service: Blogistaan
+provider:
+  name: aws
+  stage: v1
+  runtime: nodejs20.x
+  region: ap-south-1
+  stackName: Blogistaan
+  deploymentBucket:
+    name: chokhaniyash-deployments
+    maxPreviousDeploymentArtifacts: 2
+  apiName: Blogistaan-api
+
+functions:
+  app:
+    handler: src/app.handler
+    events:
+      - http:
+          path: /user/signup
+          method: POST
+      - http:
+          path: /user/login
+          method: POST
+      - http:
+          path: /
+          method: ANY
+          authorizer:
+            arn: arn:aws:cognito-idp:ap-south-1:225542105072:userpool/ap-south-1_D3zLfQqrf
+            identitySource: method.request.header.auth
+      - http:
+          path: /{proxy+}
+          method: ANY
+          authorizer:
+            arn: arn:aws:cognito-idp:ap-south-1:225542105072:userpool/ap-south-1_D3zLfQqrf
+            identitySource: method.request.header.auth
+  s3handler:
+    handler: src/handlers/s3Handler.handler
+    # package:
+    # individually: true
+    events:
+      - s3:
+          bucket: yash-s3-blogistaan
+          event: s3:ObjectCreated:*
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+custom:
+  serverless-offline:
+    noPrependStageInUrl: true

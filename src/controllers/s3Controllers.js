@@ -7,9 +7,9 @@ const {
   PutObjectCommand,
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const fs = require("fs");
-
+const { s3Client } = require("../aws/clients");
 const listBuckets = async () => {
   try {
     const command = new ListBucketsCommand({});
@@ -33,13 +33,14 @@ const listObjects = async (Bucket) => {
     return error;
   }
 };
-const getObject = async (Bucket, Key) => {
+const getObject = async ({ Bucket, Key }) => {
   try {
     const existCommand = new HeadObjectCommand({
       Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+      Key,
     });
-    const objectExists = await client.send(existCommand).catch((err) => {
+    const objectExists = await s3Client.send(existCommand).catch((err) => {
+      console.log("Error " + err);
       if (err.name === "NotFound") {
         return false;
       }
@@ -47,9 +48,9 @@ const getObject = async (Bucket, Key) => {
     if (!objectExists) return { message: "Object does not exist" };
     const command = new GetObjectCommand({
       Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+      Key: Key,
     });
-    const response = await client.send(command);
+    const response = await s3Client.send(command);
     return response;
   } catch (error) {
     return error;
@@ -62,56 +63,56 @@ const getBucketUrl = async (Bucket) => {
 };
 const getObjectUrl = async (Bucket, Key) => {
   const bucketName = Bucket;
-  const s3ObjectUrl = `https://${bucketName}.s3.amazonaws.com/${process.env.S3_BUCKET_FOLDER}/${Key}`;
+  const s3ObjectUrl = `https://${bucketName}.s3.amazonaws.com/${Key}`;
   return s3ObjectUrl;
 };
-const getObjectPresignedUrl = async (Bucket, Key) => {
+// const getObjectPresignedUrl = async (Bucket, Key) => {
+//   try {
+//     const existCommand = new HeadObjectCommand({
+//       Bucket,
+//       Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+//     });
+//     const objectExists = await client.send(existCommand).catch((err) => {
+//       if (err.name === "NotFound") {
+//         return false;
+//       }
+//     });
+//     if (!objectExists) return { message: "Object does not exist" };
+//     const command = new GetObjectCommand({
+//       Bucket,
+//       Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+//     });
+//     const url = await getSignedUrl(client, command);
+//     return { Key, url };
+//   } catch (error) {
+//     return error;
+//   }
+// };
+const putObject = async ({ Bucket, Key, Body, ContentType }) => {
   try {
-    const existCommand = new HeadObjectCommand({
-      Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
-    });
-    const objectExists = await client.send(existCommand).catch((err) => {
-      if (err.name === "NotFound") {
-        return false;
-      }
-    });
-    if (!objectExists) return { message: "Object does not exist" };
-    const command = new GetObjectCommand({
-      Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
-    });
-    const url = await getSignedUrl(client, command);
-    return { Key, url };
-  } catch (error) {
-    return error;
-  }
-};
-const putObject = async (Bucket, Key, path, ContentType) => {
-  try {
-    const Body = fs.readFileSync(path);
+    // const Body = fs.readFileSync(path);
     const command = new PutObjectCommand({
       Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+      Key,
       Body,
       ContentType,
     });
-    const response = await client.send(command);
+    const response = await s3Client.send(command);
     const url = await getObjectUrl(Bucket, Key);
-    fs.unlinkSync(path);
+    // fs.unlinkSync(path);
     return { Key, url };
   } catch (error) {
-    fs.unlinkSync(path);
+    // fs.unlinkSync(path);
     return error;
   }
 };
-const deleteObject = async (Bucket, Key) => {
+const deleteObject = async ({ Bucket, Key }) => {
   try {
     const existCommand = new HeadObjectCommand({
       Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+      Key,
     });
-    const objectExists = await client.send(existCommand).catch((err) => {
+    const objectExists = await s3Client.send(existCommand).catch((err) => {
       if (err.name === "NotFound") {
         return false;
       }
@@ -119,9 +120,9 @@ const deleteObject = async (Bucket, Key) => {
     if (!objectExists) return { message: "Object does not exist" };
     const command = new DeleteObjectCommand({
       Bucket,
-      Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
+      Key,
     });
-    const response = await client.send(command);
+    const response = await s3Client.send(command);
     return { message: "Object deleted Successfully" };
   } catch (error) {
     return error;
@@ -135,5 +136,5 @@ module.exports = {
   getObject,
   getBucketUrl,
   getObjectUrl,
-  getObjectPresignedUrl,
+  // getObjectPresignedUrl,
 };
