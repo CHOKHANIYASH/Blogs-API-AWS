@@ -3,9 +3,29 @@ const {
   AdminSetUserPasswordCommand,
   AdminInitiateAuthCommand,
 } = require("@aws-sdk/client-cognito-identity-provider");
-const { ScanCommand } = require("@aws-sdk/client-dynamodb");
+const { v4: uuidv4 } = require("uuid");
+const { ScanCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const { cognitoClient, dynamodbClient } = require("../aws/clients");
-const { addUser, addData } = require("./dynamodbControllers");
+const { welcomeEmail } = require("./sesControllers");
+const addUser = async ({ username, email }) => {
+  console.log("addUser function");
+  userId = uuidv4();
+  const command = new PutItemCommand({
+    TableName: "blog_user",
+    Item: {
+      userId: { S: userId },
+      username: { S: username },
+      email: { S: email },
+    },
+  });
+  const response = await dynamodbClient.send(command);
+  console.log(response);
+  return {
+    message: "User added successfully",
+    data: { userId },
+  };
+};
 
 const signUp = async ({ username, password, email }) => {
   try {
@@ -33,6 +53,7 @@ const signUp = async ({ username, password, email }) => {
     });
     const passwordResponse = await cognitoClient.send(passwordCommand);
     const userId = await addUser({ username, email });
+    await welcomeEmail({ email, username });
     return {
       success: true,
       message: "User created successfully",
@@ -59,7 +80,6 @@ const login = async ({ username, password }) => {
       },
     });
     const response = await cognitoClient.send(command);
-    console.log(response);
     return {
       success: true,
       message: "User logged in successfully",
@@ -84,7 +104,7 @@ const getAllUsers = async () => {
       item.email = item.email.S;
       item.userId = item.userId.S;
     });
-    return { success: true, message: "All users list", data: Items };
+    return { success: true, message: "All users list", data: { users: Items } };
   } catch (err) {
     throw err;
   }
