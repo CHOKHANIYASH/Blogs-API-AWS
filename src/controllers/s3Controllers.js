@@ -7,7 +7,6 @@ const {
   PutObjectCommand,
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
-// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const fs = require("fs");
 const { s3Client } = require("../aws/clients");
 const listBuckets = async () => {
@@ -66,28 +65,6 @@ const getObjectUrl = async (Bucket, Key) => {
   const s3ObjectUrl = `https://${bucketName}.s3.amazonaws.com/${Key}`;
   return s3ObjectUrl;
 };
-// const getObjectPresignedUrl = async (Bucket, Key) => {
-//   try {
-//     const existCommand = new HeadObjectCommand({
-//       Bucket,
-//       Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
-//     });
-//     const objectExists = await client.send(existCommand).catch((err) => {
-//       if (err.name === "NotFound") {
-//         return false;
-//       }
-//     });
-//     if (!objectExists) return { message: "Object does not exist" };
-//     const command = new GetObjectCommand({
-//       Bucket,
-//       Key: process.env.S3_BUCKET_FOLDER + "/" + Key,
-//     });
-//     const url = await getSignedUrl(client, command);
-//     return { Key, url };
-//   } catch (error) {
-//     return error;
-//   }
-// };
 const putObject = async ({ Bucket, Key, Body, ContentType }) => {
   try {
     // const Body = fs.readFileSync(path);
@@ -136,5 +113,4 @@ module.exports = {
   getObject,
   getBucketUrl,
   getObjectUrl,
-  // getObjectPresignedUrl,
 };
