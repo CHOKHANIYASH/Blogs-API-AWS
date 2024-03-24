@@ -22,6 +22,9 @@ functions:
           path: /user/login
           method: POST
       - http:
+          path: /user/{id}/subscribe
+          method: POST
+      - http:
           path: /
           method: ANY
           authorizer:

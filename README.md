@@ -8,3 +8,4 @@ Blogs Api using AWS Services like:
 - AWS IAM: For managing access to AWS services and resources securely.
 - AWS S3: For storing and retrieving data.
 - AWS Cognito: For user Authentication and Authorization
+- AWS SES: For Sending Mails
