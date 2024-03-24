@@ -10,12 +10,13 @@ const resizeHandler = async (event) => {
   const Bucket = event.Records[0].s3.bucket.name;
   const Key = event.Records[0].s3.object.key;
   const imageData = await getObject({ Bucket, Key });
+  const ContentType = imageData.ContentType;
   if (imageData.message) return console.log("Object does not exist");
   const image = await imageData.Body.transformToByteArray();
   const imageResized = await sharp(image)
     .resize({
-      width: 200,
-      height: 200,
+      width: 500,
+      height: 450,
       fit: "contain",
     })
     .toBuffer();
@@ -23,24 +24,9 @@ const resizeHandler = async (event) => {
     Bucket: process.env.S3_BUCKET_NAME,
     Key,
     Body: imageResized,
-    ContentType: image.ContentType,
+    ContentType,
   });
   const DeleteObject = await deleteObject({ Bucket, Key });
 };
 
-// resizeHandler({
-//   Records: [
-//     {
-//       s3: {
-//         bucket: {
-//           name: "yash-s3-blogistaan",
-//         },
-//         object: {
-//           key: "auth.png",
-//         },
-//       },
-//     },
-//   ],
-// });
-// module.exports = resizeHandler;
 module.exports.handler = resizeHandler;
