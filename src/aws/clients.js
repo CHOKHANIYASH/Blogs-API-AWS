@@ -3,6 +3,8 @@ const {
   CognitoIdentityProviderClient,
 } = require("@aws-sdk/client-cognito-identity-provider");
 const { S3Client } = require("@aws-sdk/client-s3");
+const { SESClient } = require("@aws-sdk/client-ses");
+
 const dynamodbClient = new DynamoDBClient({
   region: "ap-south-1",
   credentials: {
@@ -20,9 +22,15 @@ const cognitoClient = new CognitoIdentityProviderClient({
 const s3Client = new S3Client({
   region: "ap-south-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.MY_APP_AWS_ACCESS_KEY,
+    secretAccessKey: process.env.MY_APP_AWS_SECRET_ACCESS_KEY,
   },
 });
-
-module.exports = { dynamodbClient, cognitoClient, s3Client };
+const sesClient = new SESClient({
+  region: "ap-south-1",
+  credentials: {
+    accessKeyId: process.env.MY_APP_AWS_ACCESS_KEY,
+    secretAccessKey: process.env.MY_APP_AWS_SECRET_ACCESS_KEY,
+  },
+});
+module.exports = { dynamodbClient, cognitoClient, s3Client, sesClient };
