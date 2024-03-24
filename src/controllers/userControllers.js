@@ -4,10 +4,16 @@ const {
   AdminInitiateAuthCommand,
 } = require("@aws-sdk/client-cognito-identity-provider");
 const { v4: uuidv4 } = require("uuid");
-const { ScanCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const {
+  ScanCommand,
+  GetItemCommand,
+  PutItemCommand,
+  UpdateItemCommand,
+} = require("@aws-sdk/client-dynamodb");
 const { marshall, unmarshall } = require("@aws-sdk/util-dynamodb");
 const { cognitoClient, dynamodbClient } = require("../aws/clients");
 const { welcomeEmail } = require("./sesControllers");
+// Add Users to the database
 const addUser = async ({ username, email }) => {
   console.log("addUser function");
   userId = uuidv4();
@@ -26,7 +32,7 @@ const addUser = async ({ username, email }) => {
     data: { userId },
   };
 };
-
+// User Signup
 const signUp = async ({ username, password, email }) => {
   try {
     const command = new AdminCreateUserCommand({
@@ -65,7 +71,7 @@ const signUp = async ({ username, password, email }) => {
     throw err;
   }
 };
-
+// User Login
 const login = async ({ username, password }) => {
   try {
     const user_pool_id = process.env.COGNITO_USER_POOL_ID;
@@ -91,7 +97,7 @@ const login = async ({ username, password }) => {
     throw err;
   }
 };
-
+// Getting List of all Users
 const getAllUsers = async () => {
   try {
     const command = new ScanCommand({
@@ -110,8 +116,42 @@ const getAllUsers = async () => {
   }
 };
 
+// Add Subscribers to Users Blogs
+const subscribe = async ({ userId, email }) => {
+  try {
+    const command = new GetItemCommand({
+      TableName: "blog_subscriptions",
+      Key: marshall({ userId }),
+    });
+    const response = await dynamodbClient.send(command);
+    if (!response.Item) {
+      const putCommand = new PutItemCommand({
+        TableName: "blog_subscriptions",
+        Item: marshall({ userId, subscriber: [email] }),
+      });
+      const putResponse = await dynamodbClient.send(putCommand);
+    } else {
+      const updateCommand = new UpdateItemCommand({
+        TableName: "blog_subscriptions",
+        Key: marshall({ userId }),
+        UpdateExpression: "SET subscriber = list_append(subscriber, :email)",
+        ExpressionAttributeValues: marshall({ ":email": [email] }),
+      });
+      const updateResponse = await dynamodbClient.send(updateCommand);
+    }
+    return {
+      success: true,
+      message: "User subscribed successfully",
+      data: {},
+    };
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
   signUp,
   login,
   getAllUsers,
+  subscribe,
 };

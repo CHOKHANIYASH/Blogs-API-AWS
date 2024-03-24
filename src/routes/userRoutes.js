@@ -3,6 +3,7 @@ const {
   signUp,
   login,
   getAllUsers,
+  subscribe,
 } = require("../controllers/userControllers");
 const { addBlog, getUserBlogs } = require("../controllers/blogsControllers");
 
@@ -63,13 +64,29 @@ router.post("/:id/blog", async (req, res) => {
   try {
     const { id } = req.params;
     const response = await addBlog({
-      title: req.body.title,
-      content: req.body.content,
+      blogData: req.body,
       userId: id,
     });
     res.status(200).send(response);
   } catch (err) {
     console.error("Error in getUserBlogs:", err);
+    res
+      .status(500)
+      .send({ success: false, message: "Internal Server Error", data: {} });
+  }
+});
+
+router.post("/:id/subscribe", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const email = req.body.email;
+    const response = await subscribe({
+      userId,
+      email,
+    });
+    res.status(200).send(response);
+  } catch (err) {
+    console.error("Error in subscribing:", err);
     res
       .status(500)
       .send({ success: false, message: "Internal Server Error", data: {} });
