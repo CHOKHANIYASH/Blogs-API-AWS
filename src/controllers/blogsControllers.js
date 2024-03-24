@@ -33,19 +33,19 @@ const getBlog = async ({ blogId }) => {
   return { message: "Blog", data: { blogs: items } };
 };
 
-const addBlog = async ({ title, content, userId }) => {
+const addBlog = async ({ blogData, userId }) => {
   try {
     console.log("addBlog function");
     const blogId = uuidv4();
+    const Item = marshall({
+      blogId,
+      userId,
+      ...blogData,
+      createdAt: new Date().toISOString(),
+    });
     const command = new PutItemCommand({
       TableName: "blog",
-      Item: {
-        blogId: { S: blogId },
-        createdAt: { S: new Date().toISOString() },
-        title: { S: title },
-        content: { S: content },
-        userId: { S: userId },
-      },
+      Item: Item,
     });
     const response = await dynamodbClient.send(command);
     return {
