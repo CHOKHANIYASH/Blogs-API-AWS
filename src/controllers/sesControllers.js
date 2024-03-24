@@ -50,8 +50,18 @@ const sendBlogEmail = async ({ emailList, username, blogData }) => {
             <h1>New Blog Alert!</h1>
             <p>Dear Blogistaan User,</p>
             <p>A new blog has been published by <b>${username}</b>. Check it out!</p>
+            ${
+              blogData.imageUrl
+                ? `<img src="${blogData.imageUrl}" alt="Blog Image" />`
+                : ""
+            }
             <p>Title: ${blogData.title}</p>
-            <p>Content: ${blogData.content}</p>
+            <p>Content: ${blogData.content.slice(0, 200) + "......"}</p>
+            ${
+              blogData.url
+                ? `<a href="${blogData.url}" alt="Blog URL"></a>`
+                : ""
+            }
             </body>
             </html>`,
           },
