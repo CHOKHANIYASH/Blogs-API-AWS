@@ -3,7 +3,7 @@ const {
   SendEmailCommand,
   CreateTemplateCommand,
   GetTemplateCommand,
-  SendBulkTemplatedEmailCommand,
+  SendBulkEmailCommand,
   SendTemplatedEmailCommand,
 } = require("@aws-sdk/client-ses");
 
@@ -26,6 +26,41 @@ const welcomeEmail = async ({ email, username }) => {
     console.log(response);
   } catch (error) {
     console.log("Error in welcomeEmail:", error);
+    return error;
+  }
+};
+
+const sendBlogEmail = async ({ emailList, username, blogData }) => {
+  try {
+    const Destination = {
+      ToAddresses: emailList,
+    };
+    const command = new SendEmailCommand({
+      Source: "yashchokhani95@gmail.com",
+      Destination,
+      Message: {
+        Subject: {
+          Data: `New Blog by ${username}`,
+        },
+        Body: {
+          Html: {
+            Data: `<html>
+            <head></head>
+            <body>
+            <h1>New Blog Alert!</h1>
+            <p>Dear Blogistaan User,</p>
+            <p>A new blog has been published by <b>${username}</b>. Check it out!</p>
+            <p>Title: ${blogData.title}</p>
+            <p>Content: ${blogData.content}</p>
+            </body>
+            </html>`,
+          },
+        },
+      },
+    });
+    const response = await sesClient.send(command);
+  } catch (error) {
+    console.log("Error in sendBlogEmail:", error);
     return error;
   }
 };
@@ -62,4 +97,5 @@ const welcomeEmail = async ({ email, username }) => {
 // CreateTemplate();
 module.exports = {
   welcomeEmail,
+  sendBlogEmail,
 };

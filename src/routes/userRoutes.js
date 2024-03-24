@@ -2,12 +2,13 @@ const router = require("express").Router();
 const {
   signUp,
   login,
+  getUser,
   getAllUsers,
   subscribers,
   subscribe,
 } = require("../controllers/userControllers");
 const { addBlog, getUserBlogs } = require("../controllers/blogsControllers");
-
+const { sendBlogEmail } = require("../controllers/sesControllers");
 const { isAdmin } = require("../middlewares/middlewares");
 
 router.get("/", isAdmin, async (req, res) => {
@@ -68,9 +69,22 @@ router.post("/:id/blog", async (req, res) => {
       blogData: req.body,
       userId: id,
     });
+    const userId = req.params.id;
+    const userResponse = await getUser({ userId });
+    const { username } = userResponse.data.user;
+    const subscribersResponse = await subscribers({ userId });
+    if (subscribersResponse.data) {
+      const emailList = subscribersResponse.data.subscribers;
+      console.log(emailList);
+      const emailResponse = await sendBlogEmail({
+        emailList,
+        username,
+        blogData: req.body,
+      });
+    }
     res.status(200).send(response);
   } catch (err) {
-    console.error("Error in getUserBlogs:", err);
+    console.error("Error in Adding Blogs request:", err);
     res
       .status(500)
       .send({ success: false, message: "Internal Server Error", data: {} });
