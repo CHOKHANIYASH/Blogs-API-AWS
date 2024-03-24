@@ -115,6 +115,31 @@ const getAllUsers = async () => {
     throw err;
   }
 };
+// List of all the subscribers of user
+const subscribers = async ({ userId }) => {
+  try {
+    const command = new GetItemCommand({
+      TableName: "blog_subscriptions",
+      Key: marshall({ userId }),
+    });
+    const response = await dynamodbClient.send(command);
+    if (!response.Item) {
+      return {
+        success: false,
+        message: "No subscribers found",
+        data: {},
+      };
+    }
+    const subscribers = unmarshall(response.Item).subscriber;
+    return {
+      success: true,
+      message: "Subscribers list",
+      data: { subscribers },
+    };
+  } catch (err) {
+    throw err;
+  }
+};
 
 // Add Subscribers to Users Blogs
 const subscribe = async ({ userId, email }) => {
@@ -153,5 +178,6 @@ module.exports = {
   signUp,
   login,
   getAllUsers,
+  subscribers,
   subscribe,
 };

@@ -3,6 +3,7 @@ const {
   signUp,
   login,
   getAllUsers,
+  subscribers,
   subscribe,
 } = require("../controllers/userControllers");
 const { addBlog, getUserBlogs } = require("../controllers/blogsControllers");
@@ -70,6 +71,19 @@ router.post("/:id/blog", async (req, res) => {
     res.status(200).send(response);
   } catch (err) {
     console.error("Error in getUserBlogs:", err);
+    res
+      .status(500)
+      .send({ success: false, message: "Internal Server Error", data: {} });
+  }
+});
+
+router.get("/:id/subscribers", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const response = await subscribers({ userId });
+    res.status(200).send(response);
+  } catch (err) {
+    console.error("Error in getting all the subscribers:", err);
     res
       .status(500)
       .send({ success: false, message: "Internal Server Error", data: {} });
